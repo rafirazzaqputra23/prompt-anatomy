@@ -1,0 +1,6 @@
+{
+  "name":"prompt-anatomy","version":"1.0.0","private":true,
+  "description":"AI Prompt Anatomy - structured master prompt builder.",
+  "main":"server.js","scripts":{"start":"node server.js"},
+  "dependencies":{"dotenv":"^16.4.7"},"engines":{"node":">=20"}
+}
