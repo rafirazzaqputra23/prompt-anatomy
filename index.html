@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prompt Anatomy — Master Prompt Builder</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033;background:#f5f7fb}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1100px;margin:auto;padding:32px 20px 60px}
+header{margin-bottom:24px}h1{margin:0 0 8px;font-size:32px}p{line-height:1.55;color:#5b6578}
+.card{background:#fff;border:1px solid #e2e7ef;border-radius:16px;padding:22px;margin:16px 0;box-shadow:0 5px 20px rgba(20,30,50,.04)}
+label{display:block;font-weight:700;margin-bottom:8px}textarea{width:100%;border:1px solid #ccd4e0;border-radius:10px;padding:12px;font:inherit;resize:vertical}
+#shortPrompt{min-height:130px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.section-title{font-size:13px;letter-spacing:.08em;font-weight:800;margin-bottom:8px}.field textarea{min-height:150px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}button{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer;background:#172033;color:#fff}button.secondary{background:#e9edf4;color:#172033}button:disabled{opacity:.55;cursor:not-allowed}
+.status{min-height:24px;color:#5b6578;margin-top:10px}.preview{white-space:pre-wrap;background:#101828;color:#f3f6fb;border-radius:12px;padding:18px;min-height:220px;overflow:auto}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding:22px 14px}}
+</style>
+</head>
+<body><div class="wrap">
+<header><h1>Prompt Anatomy</h1><p>Masukkan prompt singkat. AI akan mengubahnya menjadi <b>Master Prompt</b> dengan struktur Role → Task → Context → Reasoning → Stop Conditions → Output.</p></header>
+<div class="card"><label for="shortPrompt">Prompt singkat</label><textarea id="shortPrompt" placeholder="Contoh: Buatkan strategi marketing untuk produk stroller bayi agar penjualannya naik."></textarea><div class="actions"><button id="generate">Analisis & Buat Master Prompt</button></div><div class="status" id="status"></div></div>
+<div class="grid">
+<div class="card field"><div class="section-title">ROLE</div><textarea id="role"></textarea></div>
+<div class="card field"><div class="section-title">TASK</div><textarea id="task"></textarea></div>
+<div class="card field"><div class="section-title">CONTEXT</div><textarea id="context"></textarea></div>
+<div class="card field"><div class="section-title">REASONING</div><textarea id="reasoning"></textarea></div>
+<div class="card field"><div class="section-title">STOP CONDITIONS</div><textarea id="stopConditions"></textarea></div>
+<div class="card field"><div class="section-title">OUTPUT</div><textarea id="output"></textarea></div>
+</div>
+<div class="card"><div class="section-title">MASTER PROMPT</div><div id="preview" class="preview">Hasil master prompt akan muncul di sini.</div><div class="actions"><button id="copy">Copy Master Prompt</button><button id="copyMd" class="secondary">Copy as Markdown</button></div></div>
+</div>
+<script>
+const ids=["role","task","context","reasoning","stopConditions","output"],titles={role:"ROLE",task:"TASK",context:"CONTEXT",reasoning:"REASONING",stopConditions:"STOP CONDITIONS",output:"OUTPUT"},$=id=>document.getElementById(id);
+function master(){return ids.map(id=>titles[id]+"\n"+($(id).value||"").trim()).join("\n\n")}
+function markdown(){return ids.map(id=>"## "+titles[id]+"\n"+($(id).value||"").trim()).join("\n\n")}
+function render(){$("preview").textContent=master()}
+ids.forEach(id=>$(id).addEventListener("input",render));
+$("generate").onclick=async()=>{const prompt=$("shortPrompt").value.trim();if(!prompt){$("status").textContent="Isi prompt singkat terlebih dahulu.";return}
+$("generate").disabled=true;$("status").textContent="AI sedang menganalisis...";
+try{const r=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})}),data=await r.json();if(!r.ok)throw Error(data.error||"Gagal membuat master prompt.");ids.forEach(id=>$(id).value=data.result[id]||"");render();$("status").textContent="Master prompt berhasil dibuat."}catch(e){$("status").textContent=e.message}finally{$("generate").disabled=false}};
+$("copy").onclick=async()=>{await navigator.clipboard.writeText(master());$("status").textContent="Master prompt disalin."};
+$("copyMd").onclick=async()=>{await navigator.clipboard.writeText(markdown());$("status").textContent="Markdown disalin."};
+render();
+</script></body></html>
